@@ -159,7 +159,7 @@ public class WikiSearch {
 	 * @param args user inputted terms
 	 * @return
 	 */
-	private static int getNextTerm(int startIndex, ArrayList<String> excludeTerms, String[] args) {
+	private static int getNextTermIndex(int startIndex, ArrayList<String> excludeTerms, String[] args) {
 		for (int i = startIndex; i < args.length; i++) {
 			if (args[i].charAt(0) == '-') {
 				excludeTerms.add(args[i]);
@@ -196,9 +196,9 @@ public class WikiSearch {
 					WikiSearch otherSearch = search(currTerm, index);
 					results = results.and(otherSearch);
 				} else {
-					currIndex++;
-					if (currIndex >= args.length) break;
-					String otherTerm = args[currIndex]; // TODO: check that still not operator?
+					currIndex = getNextTermIndex(currIndex, excludeTerms, args);
+					if (currIndex == -1) break;
+					String otherTerm = args[currIndex]; 
 					WikiSearch otherSearch = search(otherTerm, index);
 					if (currTerm.equals("AND")) {
 						results = results.and(otherSearch);
@@ -220,7 +220,7 @@ public class WikiSearch {
 	
 	public static void main(String[] args) throws IOException {			
 		ArrayList<String> excludeTerms = new ArrayList<String>();
-		int currIndex = getNextTerm(0, excludeTerms, args);
+		int currIndex = getNextTermIndex(0, excludeTerms, args);
 		if (currIndex != -1) {
 			getSearchResults(currIndex, excludeTerms, args);
 		} else {
