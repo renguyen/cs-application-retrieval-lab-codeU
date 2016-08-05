@@ -51,8 +51,12 @@ public class WikiSearch {
 	 */
 	private  void print() {
 		List<Entry<String, Integer>> entries = sort();
-		for (Entry<String, Integer> entry: entries) {
-			System.out.println(entry);
+		if (entries.isEmpty()) {
+			System.out.println("No results found.");
+		} else {
+			for (Entry<String, Integer> entry: entries) {
+				System.out.println(entry);
+			}
 		}
 	}
 
@@ -215,7 +219,9 @@ public class WikiSearch {
 			results = results.minus(otherSearch);
 		}
 		
-		if (results != null) results.print();
+		if (results != null) {
+			results.print();
+		} 
 	}
 	
 	public static void main(String[] args) throws IOException {			
