@@ -1,5 +1,6 @@
 package com.flatironschool.javacs;
 
+import java.io.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,7 +25,7 @@ public class WikiSearch {
 // map from URLs that contain the term(s) to relevance score
 	private Map<String, Integer> map;
 
-	ArrayList<String> ignoreWords; 
+	private static ArrayList<String> ignoreWords; 
 /**
  * Constructor.
  *
@@ -231,9 +232,10 @@ private static void getSearchResults(int currIndex, ArrayList<String> excludeTer
 
 		/**Function that reads in an inputted text file of words that search can ignore 
 		and returns them in an arraylist **/
-		public ArrayList<String> loadIgnoreWords() {
-			String fileName = "resources" + slash + "ignoreWords.txt";
+		public static void loadIgnoreWords() {
+			String fileName = "resources/ignoreWords.txt";
 			ignoreWords = new ArrayList<String>();
+			String line = null;
 
 			try {
 				BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName));
