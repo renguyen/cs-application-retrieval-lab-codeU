@@ -145,6 +145,9 @@ public class JedisIndex {
 	public Integer getCount(String url, String term) {
 		String redisKey = termCounterKey(url);
 		String count = jedis.hget(redisKey, term);
+		if (count == null) {
+		    return 0;
+		}
 		return new Integer(count);
 	}
 	
