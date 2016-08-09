@@ -1,6 +1,8 @@
 package com.flatironschool.javacs;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
@@ -15,13 +17,14 @@ import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import java.util.HashSet;
 import java.util.Map.Entry;
-
 import redis.clients.jedis.Jedis;
 
 
@@ -199,7 +202,7 @@ public class WikiSearch {
 	}
 
 	private static void getSearchResults(int currIndex, ArrayList<String> excludeTerms, String[] args, long startTime) throws IOException {
-	
+
 		Jedis jedis = JedisMaker.make();
 		JedisIndex index = new JedisIndex(jedis);
 
@@ -212,9 +215,9 @@ public class WikiSearch {
 				excludeTerms.add(currTerm);
 			} else {
 				if (isNotOperator(currTerm)) {
-					
+
 					if(!ignoreWords.contains(currTerm.toLowerCase())) {
-						
+
 						WikiSearch otherSearch = search(currTerm, index);
 						results = results.and(otherSearch);
 					}
@@ -222,9 +225,9 @@ public class WikiSearch {
 					currIndex = getNextTermIndex(currIndex, excludeTerms, args);
 					if (currIndex == -1) break;
 					String otherTerm = args[currIndex]; 
-					
+
 					if (!ignoreWords.contains(otherTerm.toLowerCase())) {
-						
+
 						WikiSearch otherSearch = search(otherTerm, index);
 						if (currTerm.equals("AND")) {
 							results = results.and(otherSearch);
@@ -261,7 +264,7 @@ public class WikiSearch {
 		try {
 			BufferedReader bufferedReader = new BufferedReader(new FileReader(fileURL.getFile()));
 			line = bufferedReader.readLine(); 
-	
+
 			while(line != null) {
 				ignoreWords.add(line.toLowerCase());
 				line = bufferedReader.readLine(); 
@@ -272,48 +275,91 @@ public class WikiSearch {
 		} catch(IOException ex) {
 			System.out.println("Error reading file '" + fileName + "'");                  
 		}
-		 
+
 	}
-	
+
 	public static Set<String> getIgnoreWords() {
 		return ignoreWords; 
 	}
 
-	public static void main(String[] args) throws IOException {		
 
-		//		JPanel content = new JPanel();
-		//		content.setBackground(Color.gray);
-		//		
-		//        content.setLayout(new FlowLayout());
-		//
-		//        //Build the frame
-		//        JFrame frame = new JFrame("A New Dawn on Search");
-		//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		//        frame.setSize(700, 400);
-		//        frame.setResizable(false);
-		//        frame.setLocationRelativeTo(null);
-		//        frame.add(content);
-		//        frame.setVisible(true);
-		//
-		//        
-		//        BufferedImage myPicture = ImageIO.read(new File("dawn.jpg"));
-		//        JLabel picLabel = new JLabel(new ImageIcon(myPicture));
-		//        frame.add(picLabel);
-		//
-		//        //Create login label
-		//        JLabel welcomeLabel = new JLabel("Please enter a search item.");
-		//        welcomeLabel.setBackground(Color.yellow);
-		//        welcomeLabel.setVisible(true);
-		//
-		//        
-		//        content.add(welcomeLabel);
+	public static void createDisplay() throws IOException, FontFormatException {
+		JPanel content = new JPanel();
+		content.setBackground(new Color(66,65,61));
+		content.setBackground(Color.gray);
+		content.setVisible(true);
+		content.setSize(500, 500);
+		content.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		
+		JFrame frame = new JFrame("Beam: A New Dawn on Search");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(500, 500);
+		frame.setResizable(true);
+		frame.setLocationRelativeTo(null);
+		frame.add(content);
 
 
+		JLabel welcomeLabel = new JLabel("BEAM!");
 
+		welcomeLabel.setForeground(Color.white);
+		
+		welcomeLabel.setFont(new Font("Garamond", Font.BOLD, 100));
+
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.ipady = 40;      //make this component tall
+		c.weightx = 0.0;
+		c.gridwidth = 3;
+		c.gridx = 0;
+		c.gridy = 0;
+		content.add(welcomeLabel, c);
+		
+		String slash = File.separator;
+		String fileName = "resources" + slash + "dawn.jpg";
+		URL fileURL = WikiSearch.class.getClassLoader().getResource(fileName);
+
+
+		JPanel functionalityPanel = new JPanel();
+		functionalityPanel.setBackground(Color.gray);
+		functionalityPanel.setLayout(new GridBagLayout());
+		final JTextField searchText = new JTextField(18); 
+
+		JButton searchButton = new JButton("Search!");
+		searchButton.setBackground(new Color(255, 216, 42));
+		searchButton.setForeground(Color.white);
+		searchButton.setOpaque(true);
+		searchButton.setBorderPainted(false);
+		searchButton.addActionListener(new ActionListener() { 
+			  public void actionPerformed(ActionEvent e) { 
+			   System.out.println(searchText.getText());
+			  } 
+		} );
+
+		functionalityPanel.add(searchText);
+		functionalityPanel.add(new JLabel(" "));
+		functionalityPanel.add(new JLabel(" "));
+		functionalityPanel.add(new JLabel(" "));
+		functionalityPanel.add(searchButton);
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.ipady = 70;      //make this component tall
+		c.weightx = 0.0;
+		c.gridwidth = 3;
+		c.gridx = 1;
+		c.gridy = 2;
+		content.add(functionalityPanel, c);
+
+
+		frame.setVisible(true);
+
+	}
+
+	public static void main(String[] args) throws IOException, FontFormatException {		
+
+		createDisplay(); 
 		ArrayList<String> excludeTerms = new ArrayList<String>();
 		setIgnoreWords(); 
-		
-//		ignoreWords = new HashSet<String>(); 
+
 		long startTime = System.currentTimeMillis();
 
 		int currIndex = getNextTermIndex(0, excludeTerms, args);
