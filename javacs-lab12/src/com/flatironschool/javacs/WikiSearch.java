@@ -26,6 +26,7 @@ public class WikiSearch {
 	private Map<String, Integer> map;
 
 	private static ArrayList<String> ignoreWords; 
+	
 	/**
 	 * Constructor.
 	 *
@@ -51,7 +52,9 @@ public class WikiSearch {
 	 *
 	 * @param map
 	 */
-	private  void print() {
+	private  void print(long startTime) {
+		long duration = System.currentTimeMillis() - startTime;
+		double MS_PER_SEC = 1000.0;
 		List<Entry<String, Integer>> entries = sort();
 		if (entries.isEmpty()) {
 			System.out.println("No results found.");
@@ -60,6 +63,7 @@ public class WikiSearch {
 				System.out.println(entry);
 			}
 		}
+		System.out.println("\nSearch took " + duration/MS_PER_SEC + "s.");
 	}
 
 	public HashSet<String> getUrls() {
@@ -186,7 +190,7 @@ public class WikiSearch {
 		return (!term.equals("AND") && !term.equals("OR"));
 	}
 
-	private static void getSearchResults(int currIndex, ArrayList<String> excludeTerms, String[] args) throws IOException {
+	private static void getSearchResults(int currIndex, ArrayList<String> excludeTerms, String[] args, long startTime) throws IOException {
 		Jedis jedis = JedisMaker.make();
 		JedisIndex index = new JedisIndex(jedis);
 
@@ -226,7 +230,7 @@ public class WikiSearch {
 		}
 
 		if (results != null) {
-			results.print();
+			results.print(startTime);
 		} 
 	}
 
@@ -257,9 +261,10 @@ public class WikiSearch {
 	public static void main(String[] args) throws IOException {			
 		ArrayList<String> excludeTerms = new ArrayList<String>();
 		loadIgnoreWords(); 
+		long startTime = System.currentTimeMillis();
 		int currIndex = getNextTermIndex(0, excludeTerms, args);
 		if (currIndex != -1) {
-			getSearchResults(currIndex, excludeTerms, args);
+			getSearchResults(currIndex, excludeTerms, args, startTime);
 		} else {
 			System.out.println("Please enter at least one valid search term.");
 		}
