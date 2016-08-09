@@ -1,5 +1,6 @@
 package com.flatironschool.javacs;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Map;
@@ -104,6 +105,29 @@ public class WikiCrawler {
 				queue.offer(absURL);
 			}
 		}
+	}
+	
+	public void crawlAll(String path) throws IOException {
+	    File directory = new File(path);
+	    File[] articles = directory.listFiles();
+	    
+	    for (File article : articles) {
+	        String url = "https://en.wikipedia.org/wiki/" + article.getName();
+	        
+	        Jedis jedis = JedisMaker.make();
+	        JedisIndex index = new JedisIndex(jedis); 
+	        WikiCrawler wc = new WikiCrawler(url, index);
+	        
+	        // for testing purposes, load up the queue
+	        Elements paragraphs = wf.fetchWikipedia(source);
+	        wc.queueInternalLinks(paragraphs);
+
+	        // loop until we index a new page
+	        String res;
+	        do {
+	            res = wc.crawl(false);
+	        } while (res == null);
+	    }
 	}
 	
 	public static void main(String[] args) throws IOException {
