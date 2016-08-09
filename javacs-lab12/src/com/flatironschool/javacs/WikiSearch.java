@@ -1,5 +1,7 @@
 package com.flatironschool.javacs;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
@@ -10,6 +12,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
 import java.util.HashSet;
 import java.util.Map.Entry;
 
@@ -190,6 +199,7 @@ public class WikiSearch {
 	}
 
 	private static void getSearchResults(int currIndex, ArrayList<String> excludeTerms, String[] args, long startTime) throws IOException {
+	
 		Jedis jedis = JedisMaker.make();
 		JedisIndex index = new JedisIndex(jedis);
 
@@ -202,7 +212,9 @@ public class WikiSearch {
 				excludeTerms.add(currTerm);
 			} else {
 				if (isNotOperator(currTerm)) {
+					
 					if(!ignoreWords.contains(currTerm.toLowerCase())) {
+						
 						WikiSearch otherSearch = search(currTerm, index);
 						results = results.and(otherSearch);
 					}
@@ -210,7 +222,9 @@ public class WikiSearch {
 					currIndex = getNextTermIndex(currIndex, excludeTerms, args);
 					if (currIndex == -1) break;
 					String otherTerm = args[currIndex]; 
+					
 					if (!ignoreWords.contains(otherTerm.toLowerCase())) {
+						
 						WikiSearch otherSearch = search(otherTerm, index);
 						if (currTerm.equals("AND")) {
 							results = results.and(otherSearch);
@@ -236,38 +250,72 @@ public class WikiSearch {
 	/**
 	 * Function that reads in an inputted text file of words that search can ignore 
 	 * and returns them in an arraylist 
-	*/
-	public static Set<String> getIgnoreWords() {
-		
-		if (ignoreWords == null) {
-			String slash = File.separator;
-			String fileName = "resources" + slash + "ignoreWords.txt";
-			URL fileURL = WikiSearch.class.getClassLoader().getResource(fileName);
-			ignoreWords = new HashSet<String>();
-			String line = null;
+	 */
+	public static void setIgnoreWords() {
+		ignoreWords = new HashSet<String>(); 
+		String slash = File.separator;
+		String fileName = "resources" + slash + "ignoreWords.txt";
+		URL fileURL = WikiSearch.class.getClassLoader().getResource(fileName);
+		String line = null;
+
+		try {
+			BufferedReader bufferedReader = new BufferedReader(new FileReader(fileURL.getFile()));
+			line = bufferedReader.readLine(); 
 	
-			try {
-				BufferedReader bufferedReader = new BufferedReader(new FileReader(fileURL.getFile()));
+			while(line != null) {
+				ignoreWords.add(line.toLowerCase());
 				line = bufferedReader.readLine(); 
-				while(line != null) {
-					ignoreWords.add(line.toLowerCase());
-					line = bufferedReader.readLine(); 
-				}   
-				bufferedReader.close();  
-			} catch(FileNotFoundException ex) {
-				System.out.println( "Unable to open file '" + fileName + "'");                
-			} catch(IOException ex) {
-				System.out.println("Error reading file '" + fileName + "'");                  
-			}
+			}   
+			bufferedReader.close();  
+		} catch(FileNotFoundException ex) {
+			System.out.println( "Unable to open file '" + fileName + "'");                
+		} catch(IOException ex) {
+			System.out.println("Error reading file '" + fileName + "'");                  
 		}
+		 
+	}
+	
+	public static Set<String> getIgnoreWords() {
 		return ignoreWords; 
 	}
 
-	public static void main(String[] args) throws IOException {			
+	public static void main(String[] args) throws IOException {		
+
+		//		JPanel content = new JPanel();
+		//		content.setBackground(Color.gray);
+		//		
+		//        content.setLayout(new FlowLayout());
+		//
+		//        //Build the frame
+		//        JFrame frame = new JFrame("A New Dawn on Search");
+		//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		//        frame.setSize(700, 400);
+		//        frame.setResizable(false);
+		//        frame.setLocationRelativeTo(null);
+		//        frame.add(content);
+		//        frame.setVisible(true);
+		//
+		//        
+		//        BufferedImage myPicture = ImageIO.read(new File("dawn.jpg"));
+		//        JLabel picLabel = new JLabel(new ImageIcon(myPicture));
+		//        frame.add(picLabel);
+		//
+		//        //Create login label
+		//        JLabel welcomeLabel = new JLabel("Please enter a search item.");
+		//        welcomeLabel.setBackground(Color.yellow);
+		//        welcomeLabel.setVisible(true);
+		//
+		//        
+		//        content.add(welcomeLabel);
+
+
+
 		ArrayList<String> excludeTerms = new ArrayList<String>();
-		getIgnoreWords(); 
-		long startTime = System.currentTimeMillis();
+		setIgnoreWords(); 
 		
+//		ignoreWords = new HashSet<String>(); 
+		long startTime = System.currentTimeMillis();
+
 		int currIndex = getNextTermIndex(0, excludeTerms, args);
 		if (currIndex != -1) {
 			getSearchResults(currIndex, excludeTerms, args, startTime);
