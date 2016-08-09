@@ -21,7 +21,7 @@ public class TermCounter {
 	
 	private Map<String, Integer> map;
 	private String label;
-	private static List<String> ignoreWords; 
+	private static Set<String> ignoreWords; 
 	
 	public TermCounter(String label) {
 		this.label = label;

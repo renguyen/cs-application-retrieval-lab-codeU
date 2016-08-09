@@ -25,7 +25,7 @@ public class WikiSearch {
 	// map from URLs that contain the term(s) to relevance score
 	private Map<String, Integer> map;
 
-	private static List<String> ignoreWords; 
+	private static Set<String> ignoreWords; 
 	/**
 	 * Constructor.
 	 *
@@ -234,13 +234,13 @@ public class WikiSearch {
 	 * Function that reads in an inputted text file of words that search can ignore 
 	 * and returns them in an arraylist 
 	*/
-	public static List<String> getIgnoreWords() {
+	public static Set<String> getIgnoreWords() {
 		
 		if (ignoreWords == null) {
 			String slash = File.separator;
 			String fileName = "resources" + slash + "ignoreWords.txt";
 			URL fileURL = WikiSearch.class.getClassLoader().getResource(fileName);
-			ignoreWords = new ArrayList<String>();
+			ignoreWords = new HashSet<String>();
 			String line = null;
 	
 			try {
