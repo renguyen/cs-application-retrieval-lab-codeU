@@ -19,6 +19,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.jsoup.select.Elements;
+
 import java.util.HashSet;
 import java.util.Map.Entry;
 
@@ -35,6 +37,8 @@ public class WikiSearch {
 	private Map<String, Integer> map;
 
 	private static Set<String> ignoreWords; 
+	final static WikiFetcher wf = new WikiFetcher();
+	
 	/**
 	 * Constructor.
 	 *
@@ -60,7 +64,7 @@ public class WikiSearch {
 	 *
 	 * @param map
 	 */
-	private  void print(long startTime) {
+	private void print(long startTime, JedisIndex index) {
 		long duration = System.currentTimeMillis() - startTime;
 		double MS_PER_SEC = 1000.0;
 		List<Entry<String, Integer>> entries = sort();
@@ -69,6 +73,8 @@ public class WikiSearch {
 		} else {
 			for (Entry<String, Integer> entry: entries) {
 				System.out.println(entry);
+				String startingWords = index.getStartingWords(entry.getKey());
+				if (startingWords != null) System.out.println(startingWords);
 			}
 		}
 		System.out.println("\nSearch took " + duration/MS_PER_SEC + "s.");
@@ -197,11 +203,11 @@ public class WikiSearch {
 	private static boolean isNotOperator(String term) {
 		return (!term.equals("AND") && !term.equals("OR"));
 	}
-
-	private static void getSearchResults(int currIndex, ArrayList<String> excludeTerms, String[] args, long startTime) throws IOException {
 	
-		Jedis jedis = JedisMaker.make();
-		JedisIndex index = new JedisIndex(jedis);
+
+	private static void getSearchResults(int currIndex, ArrayList<String> excludeTerms, String[] args, long startTime, JedisIndex index) throws IOException {
+	
+
 
 		WikiSearch results;
 		results = search(args[currIndex], index);
@@ -212,9 +218,7 @@ public class WikiSearch {
 				excludeTerms.add(currTerm);
 			} else {
 				if (isNotOperator(currTerm)) {
-					
 					if(!ignoreWords.contains(currTerm.toLowerCase())) {
-						
 						WikiSearch otherSearch = search(currTerm, index);
 						results = results.and(otherSearch);
 					}
@@ -224,7 +228,6 @@ public class WikiSearch {
 					String otherTerm = args[currIndex]; 
 					
 					if (!ignoreWords.contains(otherTerm.toLowerCase())) {
-						
 						WikiSearch otherSearch = search(otherTerm, index);
 						if (currTerm.equals("AND")) {
 							results = results.and(otherSearch);
@@ -243,7 +246,7 @@ public class WikiSearch {
 		}
 
 		if (results != null) {
-			results.print(startTime);
+			results.print(startTime, index);
 		} 
 	}
 
@@ -279,6 +282,29 @@ public class WikiSearch {
 		return ignoreWords; 
 	}
 
+	public static void crawlAll(JedisIndex index) throws IOException {
+		String[] articles = { "Awareness", "Computer_science", "Concurrent_computing", 
+							  "Consciousness", "Java_(programming_language)", "Knowledge",
+							  "Mathematics", "Modern_philosophy", "Philosophy", "Programming_language", 
+							  "Property_(philosophy)", "Quality_(philosophy)", "Science" };
+	    
+	    for (String article : articles) {
+	        String url = "https://en.wikipedia.org/wiki/" + article;
+	        
+	        WikiCrawler wc = new WikiCrawler(url, index);
+	        
+	        // for testing purposes, load up the queue
+	        Elements paragraphs = wf.fetchWikipedia(url);
+	        wc.queueInternalLinks(paragraphs);
+
+	        // loop until we index a new page
+	        String res;
+	        do {
+	            res = wc.crawl(true);
+	        } while (res == null);
+	    }
+	}
+	
 	public static void main(String[] args) throws IOException {		
 
 		//		JPanel content = new JPanel();
@@ -310,15 +336,16 @@ public class WikiSearch {
 
 
 
-		ArrayList<String> excludeTerms = new ArrayList<String>();
 		setIgnoreWords(); 
+		Jedis jedis = JedisMaker.make();
+		JedisIndex index = new JedisIndex(jedis);
+		//crawlAll(index);
+		ArrayList<String> excludeTerms = new ArrayList<String>();
 		
-//		ignoreWords = new HashSet<String>(); 
 		long startTime = System.currentTimeMillis();
-
 		int currIndex = getNextTermIndex(0, excludeTerms, args);
 		if (currIndex != -1) {
-			getSearchResults(currIndex, excludeTerms, args, startTime);
+			getSearchResults(currIndex, excludeTerms, args, startTime, index);
 		} else {
 			System.out.println("Please enter at least one valid search term.");
 		}

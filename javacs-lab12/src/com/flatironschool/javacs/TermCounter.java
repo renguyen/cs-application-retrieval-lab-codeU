@@ -19,17 +19,26 @@ import org.jsoup.select.Elements;
  */
 public class TermCounter {
 	
+	public static final int STARTING_WORDS_TO_TRACK = 20;
+	
 	private Map<String, Integer> map;
 	private String label;
 	private static Set<String> ignoreWords; 
+	private String startingText = "";
+	private int startingWordsTracked = 0;
 	
 	public TermCounter(String label) {
 		this.label = label;
 		this.map = new HashMap<String, Integer>();
+		ignoreWords = WikiSearch.getIgnoreWords(); 
 	}
 	
 	public String getLabel() {
 		return label;
+	}
+	
+	public String getStartingText() {
+		return startingText;
 	}
 	
 	/**
@@ -84,6 +93,16 @@ public class TermCounter {
 			String term = array[i];
 			if (!ignoreWords.contains(term)) {
 				incrementTermCount(term);
+			}
+			
+			if (startingWordsTracked < STARTING_WORDS_TO_TRACK && term.length() > 0) {
+				if (startingWordsTracked == 0) {
+					String capitalized = term.substring(0,1).toUpperCase() + term.substring(1);
+					startingText += capitalized.trim() + " ";
+				} else {
+					startingText += term.trim() + " ";
+				}
+				startingWordsTracked++;
 			}
 		}
 	}
@@ -149,7 +168,6 @@ public class TermCounter {
 		WikiFetcher wf = new WikiFetcher();
 		Elements paragraphs = wf.fetchWikipedia(url);
 		
-		ignoreWords = WikiSearch.getIgnoreWords(); 
 		
 		TermCounter counter = new TermCounter(url.toString());
 		counter.processElements(paragraphs);

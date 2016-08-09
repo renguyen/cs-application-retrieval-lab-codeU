@@ -48,6 +48,13 @@ public class JedisIndex {
 	private String termCounterKey(String url) {
 		return "TermCounter:" + url;
 	}
+	
+	/**
+	 * Returns the Redis key for the first x words in a URL
+	 */
+	private String startingWordsKey(String url) {
+		return "StartingWords:" + url;
+	}
 
 	/**
 	 * Checks whether we have a TermCounter for a given URL.
@@ -140,6 +147,16 @@ public class JedisIndex {
 		String count = jedis.hget(redisKey, term);
 		return new Integer(count);
 	}
+	
+	/**
+	 * Returns the starting words for a given URL
+	 * @param url
+	 * @return
+	 */
+	public String getStartingWords(String url) {
+		String redisKey = startingWordsKey(url);
+		return jedis.get(redisKey);
+	}
 
 	/**
 	 * Add a page to the index.
@@ -181,6 +198,11 @@ public class JedisIndex {
 			t.sadd(urlSetKey(term), url);
 		}
 		List<Object> res = t.exec();
+		
+		// adds starting words for a url to redis
+		String startingWordsHash = startingWordsKey(url);
+		t.set(startingWordsHash, tc.getStartingText().trim() + "...");
+		
 		return res;
 	}
 
