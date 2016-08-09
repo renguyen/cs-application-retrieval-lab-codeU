@@ -2,6 +2,7 @@ package com.flatironschool.javacs;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,6 +21,7 @@ public class TermCounter {
 	
 	private Map<String, Integer> map;
 	private String label;
+	private static List<String> ignoreWords; 
 	
 	public TermCounter(String label) {
 		this.label = label;
@@ -80,7 +82,9 @@ public class TermCounter {
 		
 		for (int i=0; i<array.length; i++) {
 			String term = array[i];
-			incrementTermCount(term);
+			if (!ignoreWords.contains(term)) {
+				incrementTermCount(term);
+			}
 		}
 	}
 
@@ -144,6 +148,8 @@ public class TermCounter {
 		
 		WikiFetcher wf = new WikiFetcher();
 		Elements paragraphs = wf.fetchWikipedia(url);
+		
+		ignoreWords = WikiSearch.getIgnoreWords(); 
 		
 		TermCounter counter = new TermCounter(url.toString());
 		counter.processElements(paragraphs);
