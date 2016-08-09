@@ -25,8 +25,7 @@ public class WikiSearch {
 	// map from URLs that contain the term(s) to relevance score
 	private Map<String, Integer> map;
 
-	private static ArrayList<String> ignoreWords; 
-	
+	private static List<String> ignoreWords; 
 	/**
 	 * Constructor.
 	 *
@@ -238,30 +237,37 @@ public class WikiSearch {
 	 * Function that reads in an inputted text file of words that search can ignore 
 	 * and returns them in an arraylist 
 	*/
-	public static void loadIgnoreWords() {
-		String slash = File.separator;
-		String fileName = "resources" + slash + "ignoreWords.txt";
-		URL fileURL = WikiSearch.class.getClassLoader().getResource(fileName);
-		ignoreWords = new ArrayList<String>();
-		String line = null;
-
-		try {
-			BufferedReader bufferedReader = new BufferedReader(new FileReader(fileURL.getFile()));
-			while((line = bufferedReader.readLine()) != null) {
-				ignoreWords.add(line.toLowerCase());
-			}   
-			bufferedReader.close();  
-		} catch(FileNotFoundException ex) {
-			System.out.println( "Unable to open file '" + fileName + "'");                
-		} catch(IOException ex) {
-			System.out.println("Error reading file '" + fileName + "'");                  
+	public static List<String> getIgnoreWords() {
+		
+		if (ignoreWords == null) {
+			String slash = File.separator;
+			String fileName = "resources" + slash + "ignoreWords.txt";
+			URL fileURL = WikiSearch.class.getClassLoader().getResource(fileName);
+			ignoreWords = new ArrayList<String>();
+			String line = null;
+	
+			try {
+				BufferedReader bufferedReader = new BufferedReader(new FileReader(fileURL.getFile()));
+				line = bufferedReader.readLine(); 
+				while(line != null) {
+					ignoreWords.add(line.toLowerCase());
+					line = bufferedReader.readLine(); 
+				}   
+				bufferedReader.close();  
+			} catch(FileNotFoundException ex) {
+				System.out.println( "Unable to open file '" + fileName + "'");                
+			} catch(IOException ex) {
+				System.out.println("Error reading file '" + fileName + "'");                  
+			}
 		}
+		return ignoreWords; 
 	}
 
 	public static void main(String[] args) throws IOException {			
 		ArrayList<String> excludeTerms = new ArrayList<String>();
-		loadIgnoreWords(); 
+		getIgnoreWords(); 
 		long startTime = System.currentTimeMillis();
+		
 		int currIndex = getNextTermIndex(0, excludeTerms, args);
 		if (currIndex != -1) {
 			getSearchResults(currIndex, excludeTerms, args, startTime);
