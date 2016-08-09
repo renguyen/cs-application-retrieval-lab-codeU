@@ -1,6 +1,7 @@
 package com.flatironschool.javacs;
 
 import java.io.*;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -234,12 +235,14 @@ public class WikiSearch {
 	 * and returns them in an arraylist 
 	*/
 	public static void loadIgnoreWords() {
-		String fileName = "resources/ignoreWords.txt";
+		String slash = File.separator;
+		String fileName = "resources" + slash + "ignoreWords.txt";
+		URL fileURL = WikiSearch.class.getClassLoader().getResource(fileName);
 		ignoreWords = new ArrayList<String>();
 		String line = null;
 
 		try {
-			BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName));
+			BufferedReader bufferedReader = new BufferedReader(new FileReader(fileURL.getFile()));
 			while((line = bufferedReader.readLine()) != null) {
 				ignoreWords.add(line.toLowerCase());
 			}   
