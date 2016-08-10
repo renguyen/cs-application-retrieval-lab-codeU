@@ -282,7 +282,7 @@ public class WikiSearch {
 		return ignoreWords; 
 	}
 
-	public static void crawlAll(JedisIndex index) throws IOException {
+	public static void crawlAll(boolean testing) throws IOException {
 		String[] articles = { "Awareness", "Computer_science", "Concurrent_computing", 
 				"Consciousness", "Java_(programming_language)", "Knowledge",
 				"Mathematics", "Modern_philosophy", "Philosophy", "Programming_language", 
@@ -291,6 +291,8 @@ public class WikiSearch {
 		for (String article : articles) {
 			String url = "https://en.wikipedia.org/wiki/" + article;
 
+			Jedis jedis = JedisMaker.make();
+			JedisIndex index = new JedisIndex(jedis);
 			WikiCrawler wc = new WikiCrawler(url, index);
 
 			// for testing purposes, load up the queue
@@ -300,7 +302,7 @@ public class WikiSearch {
 			// loop until we index a new page
 			String res;
 			do {
-				res = wc.crawl(true);
+				res = wc.crawl(testing);
 			} while (res == null);
 		}
 	}
@@ -381,6 +383,8 @@ public class WikiSearch {
 		Jedis jedis = JedisMaker.make();
 		JedisIndex index = new JedisIndex(jedis);
 
+		crawlAll(false);
+		
 		long startTime = System.currentTimeMillis();
 		int currIndex = getNextTermIndex(0, excludeTerms, args);
 		if (currIndex != -1) {

@@ -53,7 +53,7 @@ public class JedisIndex {
 	 * Returns the Redis key for the first x words in a URL
 	 */
 	private String startingWordsKey(String url) {
-		return "StartingWords:" + url;
+		return "StartingWords:" + url.trim();
 	}
 
 	/**
@@ -168,7 +168,7 @@ public class JedisIndex {
 	 * @param paragraphs  Collection of elements that should be indexed.
 	 */
 	public void indexPage(String url, Elements paragraphs) {
-		System.out.println("Indexing " + url);
+		//System.out.println("Indexing " + url);
 		
 		// make a TermCounter and count the terms in the paragraphs
 		TermCounter tc = new TermCounter(url);
@@ -200,12 +200,11 @@ public class JedisIndex {
 			t.hset(hashname, term, count.toString());
 			t.sadd(urlSetKey(term), url);
 		}
-		List<Object> res = t.exec();
 		
 		// adds starting words for a url to redis
-		String startingWordsHash = startingWordsKey(url);
-		t.set(startingWordsHash, tc.getStartingText().trim() + "...");
+		t.set(startingWordsKey(url), tc.getStartingText().trim() + "...");
 		
+		List<Object> res = t.exec();
 		return res;
 	}
 
@@ -327,15 +326,15 @@ public class JedisIndex {
 		Jedis jedis = JedisMaker.make();
 		JedisIndex index = new JedisIndex(jedis);
 		
-		//index.deleteTermCounters();
-		//index.deleteURLSets();
-		//index.deleteAllKeys();
-		loadIndex(index);
+		index.deleteTermCounters();
+		index.deleteURLSets();
+		index.deleteAllKeys();
+		/*loadIndex(index);
 		
 		Map<String, Integer> map = index.getCountsFaster("the");
 		for (Entry<String, Integer> entry: map.entrySet()) {
 			System.out.println(entry);
-		}
+		}*/
 	}
 
 	/**

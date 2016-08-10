@@ -59,7 +59,7 @@ public class WikiCrawler {
 			return null;
 		}
 		String url = queue.poll();
-		System.out.println("Crawling " + url);
+		//System.out.println("Crawling " + url);
 
 		if (testing==false && index.isIndexed(url)) {
 			//System.out.println("Already indexed.");
