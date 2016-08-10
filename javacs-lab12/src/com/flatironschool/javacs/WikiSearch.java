@@ -80,21 +80,26 @@ public class WikiSearch {
 			System.out.println("No results found.");
 		} else {
 			for (Entry<String, Integer> entry: entries) {
-				System.out.println(entry); 
-   
 				panel.add(createLabel(entry.getKey(), Color.white, new Font("Helvetica", Font.BOLD, 30)));
 				panel.add(createLabel(Integer.toString(entry.getValue()), Color.white, new Font("Helvetica", Font.BOLD, 10)));
 				String startingWords = index.getStartingWords(entry.getKey());
-				if (startingWords != null) System.out.println(startingWords);
-				if (startingWords != null)panel.add(createLabel(startingWords, Color.lightGray, new Font("Helvetica", Font.BOLD, 10)));
+				if (startingWords != null && checkValidStartingWords(startingWords)){
+					panel.add(createLabel(startingWords, Color.lightGray, new Font("Helvetica", Font.BOLD, 10)));
+				}
 				panel.add(new JLabel(" "));
 			}
 		}
 		panel.add(new JLabel("\nSearch took " + duration/MS_PER_SEC + "s."));
-//		System.out.println("\nSearch took " + duration/MS_PER_SEC + "s.");
 		return panel; 
 	}
 
+	private boolean checkValidStartingWords(String input) {
+	    if (input.substring(0, 4).equals("null")) {
+	        return false;
+	    }
+	    return true;
+	}
+	
 	public HashSet<String> getUrls() {
 		return new HashSet(map.keySet());
 	}
@@ -384,10 +389,10 @@ public class WikiSearch {
 						WikiSearch results = getSearchResults(currIndex, excludeTerms, searchTerms, startTime, index);
 						JComponent overallPanel = new JPanel();
 
-						JComponent newPanel = createPanel(1000, 500);
+						JComponent newPanel = createPanel(1000, 700);
 
 						newPanel.setLayout(new BoxLayout(newPanel, BoxLayout.Y_AXIS));
-						newPanel.add(createLabel("Search results:", Color.white, new Font("Helvetica", Font.BOLD, 100)));
+						newPanel.add(createLabel("Search results", new Color(255, 216, 42), new Font("Helvetica", Font.BOLD, 100)));
 						newPanel = results.print(startTime, index, newPanel);
 						
 						JScrollPane scrollPane = new JScrollPane(newPanel);
@@ -396,7 +401,7 @@ public class WikiSearch {
 						scrollPane.setSize(frame.getWidth(), frame.getHeight());
 						overallPanel.add(scrollPane);
 						frame.setContentPane(scrollPane);
-						frame.setSize(new Dimension(1000, 500));
+						frame.setSize(new Dimension(1000, 700));
 						frame.setVisible(true);
 						
 						
