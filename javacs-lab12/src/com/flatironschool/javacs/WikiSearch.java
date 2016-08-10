@@ -81,11 +81,11 @@ public class WikiSearch {
 		} else {
 			for (Entry<String, Integer> entry: entries) {
 				panel.add(createLabel(entry.getKey(), Color.white, new Font("Helvetica", Font.BOLD, 30)));
-				panel.add(createLabel(Integer.toString(entry.getValue()), Color.white, new Font("Helvetica", Font.BOLD, 10)));
 				String startingWords = index.getStartingWords(entry.getKey());
 				if (startingWords != null && checkValidStartingWords(startingWords)){
-					panel.add(createLabel(startingWords, Color.lightGray, new Font("Helvetica", Font.BOLD, 10)));
+					panel.add(createLabel(startingWords, Color.lightGray, new Font("Helvetica", Font.BOLD, 20)));
 				}
+				panel.add(new JLabel(" "));
 				panel.add(new JLabel(" "));
 			}
 		}
@@ -174,8 +174,8 @@ public class WikiSearch {
 		Comparator<Entry<String, Integer>> comparator = new Comparator<Entry<String, Integer>>() {
 			@Override
 			public int compare(Entry<String, Integer> entry1, Entry<String, Integer> entry2) {
-				if (entry1.getValue() < entry2.getValue()) return -1;
-				if (entry1.getValue() > entry2.getValue()) return 1;
+				if (entry1.getValue() < entry2.getValue()) return 1;
+				if (entry1.getValue() > entry2.getValue()) return -1;
 				return 0;
 			}
 		};
@@ -301,7 +301,7 @@ public class WikiSearch {
 		return ignoreWords; 
 	}
 
-	public static void crawlAll(JedisIndex index) throws IOException {
+	public static void crawlAll(boolean testing) throws IOException {
 		String[] articles = { "Awareness", "Computer_science", "Concurrent_computing", 
 				"Consciousness", "Java_(programming_language)", "Knowledge",
 				"Mathematics", "Modern_philosophy", "Philosophy", "Programming_language", 
@@ -310,6 +310,8 @@ public class WikiSearch {
 		for (String article : articles) {
 			String url = "https://en.wikipedia.org/wiki/" + article;
 
+			Jedis jedis = JedisMaker.make();
+			JedisIndex index = new JedisIndex(jedis);
 			WikiCrawler wc = new WikiCrawler(url, index);
 
 			// for testing purposes, load up the queue
@@ -319,7 +321,7 @@ public class WikiSearch {
 			// loop until we index a new page
 			String res;
 			do {
-				res = wc.crawl(true);
+				res = wc.crawl(testing);
 			} while (res == null);
 		}
 	}
@@ -378,7 +380,7 @@ public class WikiSearch {
 		searchButton.setBorderPainted(false);
 		searchButton.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) { 
-				
+		
 				String[] searchTerms = getSearchTerms(searchText); 
 				long startTime = System.currentTimeMillis();
 				int currIndex = getNextTermIndex(0, excludeTerms, searchTerms);
@@ -388,7 +390,6 @@ public class WikiSearch {
 					try {
 						WikiSearch results = getSearchResults(currIndex, excludeTerms, searchTerms, startTime, index);
 						JComponent overallPanel = new JPanel();
-
 						JComponent newPanel = createPanel(1000, 700);
 
 						newPanel.setLayout(new BoxLayout(newPanel, BoxLayout.Y_AXIS));
@@ -403,7 +404,6 @@ public class WikiSearch {
 						frame.setContentPane(scrollPane);
 						frame.setSize(new Dimension(1000, 700));
 						frame.setVisible(true);
-						
 						
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
@@ -469,6 +469,7 @@ public class WikiSearch {
 	}
 
 	public static void main(String[] args) throws IOException, FontFormatException {		
-		createDisplay(); 
+		createDisplay();
+//		crawlAll(false); 
 	}
 }		

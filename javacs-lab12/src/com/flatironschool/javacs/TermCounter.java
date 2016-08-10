@@ -24,7 +24,7 @@ public class TermCounter {
 	private Map<String, Integer> map;
 	private String label;
 	private static Set<String> ignoreWords; 
-	private String startingText = "";
+	private String startingText;
 	private int startingWordsTracked = 0;
 	
 	public TermCounter(String label) {
@@ -98,7 +98,7 @@ public class TermCounter {
 			if (startingWordsTracked < STARTING_WORDS_TO_TRACK && term.length() > 0) {
 				if (startingWordsTracked == 0) {
 					String capitalized = term.substring(0,1).toUpperCase() + term.substring(1);
-					startingText += capitalized.trim() + " ";
+					startingText = capitalized.trim() + " ";
 				} else {
 					startingText += term.trim() + " ";
 				}
