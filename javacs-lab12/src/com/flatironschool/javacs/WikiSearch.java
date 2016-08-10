@@ -83,6 +83,13 @@ public class WikiSearch {
 		System.out.println("\nSearch took " + duration/MS_PER_SEC + "s.");
 	}
 
+	private boolean checkValidStartingWords(String input) {
+	    if (input.substring(0, 4).equals("null")) {
+	        return false;
+	    }
+	    return true;
+	}
+	
 	public HashSet<String> getUrls() {
 		return new HashSet(map.keySet());
 	}
@@ -380,6 +387,8 @@ public class WikiSearch {
 
 		Jedis jedis = JedisMaker.make();
 		JedisIndex index = new JedisIndex(jedis);
+		
+		//crawlAll(index);
 
 		long startTime = System.currentTimeMillis();
 		int currIndex = getNextTermIndex(0, excludeTerms, args);
