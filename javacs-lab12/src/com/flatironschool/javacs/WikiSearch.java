@@ -76,10 +76,12 @@ public class WikiSearch {
 		long duration = System.currentTimeMillis() - startTime;
 		double MS_PER_SEC = 1000.0;
 		List<Entry<String, Integer>> entries = sort();
+		int searchCounter = 0;
 		if (entries.isEmpty()) {
 			System.out.println("No results found.");
 		} else {
 			for (Entry<String, Integer> entry: entries) {
+				searchCounter++; 
 				panel.add(createLabel(entry.getKey(), Color.white, new Font("Helvetica", Font.BOLD, 30)));
 				String startingWords = index.getStartingWords(entry.getKey());
 				if (startingWords != null && checkValidStartingWords(startingWords)){
@@ -90,6 +92,7 @@ public class WikiSearch {
 			}
 		}
 		panel.add(new JLabel("\nSearch took " + duration/MS_PER_SEC + "s."));
+		panel.add(new JLabel("Search results: " + searchCounter));
 		return panel; 
 	}
 
@@ -297,6 +300,7 @@ public class WikiSearch {
 
 	}
 
+	//Returns ignored words
 	public static Set<String> getIgnoreWords() {
 		return ignoreWords; 
 	}
@@ -326,16 +330,17 @@ public class WikiSearch {
 		}
 	}
 
-	public static JFrame createFrame() {
-		JFrame frame = new JFrame("Beam: A New Dawn on Search");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setSize(500, 500);
+	//Creates a frame 
+	public static JFrame createFrame(String title, int width, int height) {
+		JFrame frame = new JFrame(title);
+		frame.setSize(width, height);
 		frame.setResizable(true);
 		frame.setLocationRelativeTo(null);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		return frame; 
 	}
 	
+	//Creates a new panel with a desired height and width
 	public static JComponent createPanel(int height, int width) {
 		JComponent content = new JPanel();
 		content.setBackground(Color.gray);
@@ -344,6 +349,7 @@ public class WikiSearch {
 		return content; 
 	}
 	
+	//Returns a label with the specified text, color and font
 	public static JLabel createLabel(String text, Color color, Font font) {
 		JLabel label = new JLabel(text);
 		label.setForeground(color);
@@ -351,6 +357,7 @@ public class WikiSearch {
 		return label;
 	}
 	
+	//Tokenizes the user's inputted search terms and returns them as an array
 	public static String[] getSearchTerms(JTextField searchText) {
 		StringTokenizer search = new StringTokenizer(searchText.getText());
 		String[] searchTerms = new String[search.countTokens()];
@@ -362,15 +369,7 @@ public class WikiSearch {
 		return searchTerms; 
 	}
 	
-	public static JButton getBackButton() {
-		JButton backButton = new JButton("Back");
-		backButton.setBackground(new Color(255, 216, 42));
-		backButton.setForeground(Color.white);
-		backButton.setOpaque(true);
-		backButton.setBorderPainted(false);
-		return backButton;
-	}
-	
+	//Returns search button that queries the search terms and creates a new display window for those results
 	public static JButton getHomeSearchButton(final JTextField searchText, final ArrayList<String> excludeTerms,
 												final JedisIndex index, final JFrame frame) {
 		JButton searchButton = new JButton("Search!");
@@ -389,6 +388,8 @@ public class WikiSearch {
 					
 					try {
 						WikiSearch results = getSearchResults(currIndex, excludeTerms, searchTerms, startTime, index);
+						JFrame newFrame = createFrame("Search Results", 1000, 700);
+						
 						JComponent overallPanel = new JPanel();
 						JComponent newPanel = createPanel(1000, 700);
 
@@ -401,9 +402,10 @@ public class WikiSearch {
 						scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 						scrollPane.setSize(frame.getWidth(), frame.getHeight());
 						overallPanel.add(scrollPane);
-						frame.setContentPane(scrollPane);
-						frame.setSize(new Dimension(1000, 700));
-						frame.setVisible(true);
+						
+						newFrame.setContentPane(scrollPane);
+						newFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+						newFrame.setVisible(true);
 						
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
@@ -412,6 +414,7 @@ public class WikiSearch {
 				} else {
 					frame.getContentPane().add(new JLabel("Please enter at least one valid search term"));
 				}
+				searchText.setText("");
 			
 			} 
 		} );
@@ -419,6 +422,7 @@ public class WikiSearch {
 		return searchButton; 
 	}
 	
+	//Creates home display for UI
 	public static void createDisplay() throws IOException, FontFormatException {
 		
 		final ArrayList<String> excludeTerms = new ArrayList<String>();
@@ -428,7 +432,7 @@ public class WikiSearch {
 		Jedis jedis = JedisMaker.make();
 		final JedisIndex index = new JedisIndex(jedis);
 		
-		final JFrame frame = createFrame(); 
+		final JFrame frame = createFrame("Beam: A New Dawn on Search", 500, 500); 
 		JComponent content = createPanel(500, 500); 
 		content.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
